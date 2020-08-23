@@ -1,6 +1,9 @@
 # road-extraction-service
 Extraction of Roads from satellite imagery.
 
+## Installation
+pip install -r requirements_cpu.txt
+
 ## Project Details
 Find the details in "Road Extraction Service.docs"
 
