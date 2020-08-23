@@ -1,7 +1,7 @@
 # road-extraction-service
 Extraction of Roads from satellite imagery.
 
-#Project Details
+## Project Details
 Find the details in "Road Extraction Service.docs"
 
 ## Project Structure
