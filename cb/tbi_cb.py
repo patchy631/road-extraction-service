@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+import cv2
 
 
 class TensorBoardImage(tf.keras.callbacks.Callback):
@@ -21,17 +22,18 @@ class TensorBoardImage(tf.keras.callbacks.Callback):
             input_shape = input_image.shape[1:-1]
 
             label = label.numpy()
-            ground_truth = (label[0, :, :, 0] * 255).astype(np.uint8)
-            ground_truth = np.reshape(ground_truth, (-1, input_shape[0], input_shape[1], 1))
+            ground_truth = np.argmax(label[0], axis=-1)
+            ground_truth = (ground_truth * 50).astype(np.uint8)
+            ground_truth = self.colorize(ground_truth)
+            ground_truth = np.reshape(ground_truth, (-1, input_shape[0], input_shape[1], 3))
+
 
             predicted_label = self.model.predict(batch_of_imgs)[0]
-            predicted_label = np.reshape(predicted_label, (input_shape[0], input_shape[1]))
+            predicted_label = np.argmax(predicted_label, axis=-1)
+            predicted_label = (predicted_label * 50).astype(np.uint8)
+            pred_img = self.colorize(predicted_label)
+            pred_img = np.reshape(pred_img, (-1, input_shape[0], input_shape[1], 3))
 
-            final_img = np.zeros((input_shape[0], input_shape[1]), np.uint8)
-            thresh_indices = predicted_label[:, :] > 0.5
-            final_img[thresh_indices] = 255
-
-            pred_img = np.reshape(final_img, (-1, input_shape[0], input_shape[1], 1))
 
             file_writer = tf.summary.create_file_writer(self.path)
             with file_writer.as_default():
@@ -40,3 +42,11 @@ class TensorBoardImage(tf.keras.callbacks.Callback):
                 tf.summary.image(self.tag + str(i) + "_pred", pred_img, step=epoch)
 
         return
+
+    def colorize(self, img):
+        channel2 = np.ones((img.shape[0], img.shape[1], 1)) * 255
+        channel3 = np.ones((img.shape[0], img.shape[1], 1)) * 255
+        channel1 = np.reshape(img, (img.shape[0], img.shape[1], 1))
+        img_hsv = np.concatenate([channel1, channel2, channel3], axis=-1).astype(np.uint8)
+        img_color = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)
+        return img_color
